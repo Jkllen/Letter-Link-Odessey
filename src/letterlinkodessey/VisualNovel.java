@@ -6,14 +6,14 @@ import javafx.stage.Stage;
 
 public class VisualNovel extends Application {
     private ModelFX model;
-    private ViewFX view;
+    private MainMenuFX view;
     private ControllerFX controller;
 
     @Override
     public void start(Stage primaryStage) {
-        // Initialize Model, View, and Controller
+        //Initialize Model, View, and Controller
         model = new ModelFX();
-        view = new ViewFX(primaryStage);
+        view = new MainMenuFX(primaryStage);
         controller = new ControllerFX(model, view, primaryStage);
     }
 
