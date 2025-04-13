@@ -1,43 +1,97 @@
 package letterlinkodessey;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 public class ModelFX {
     private List<DialogueEntry> dialogues;
     private int currentDialogueIndex;
     private String playerName;
 
-    // Constructor
     public ModelFX() {
         dialogues = new ArrayList<>();
         currentDialogueIndex = 0;
+        loadDialoguesFromDatabase();
     }
 
-    // Adds a new dialogue entry
-    public void addDialogue(String text, String characterImg, String backgroundImg) {
-        dialogues.add(new DialogueEntry(text, characterImg, backgroundImg));
-    }
-
-    // Get the current dialogue entry
-    public DialogueEntry getCurrentDialogue() {
-        if (currentDialogueIndex < dialogues.size()) {
-            return dialogues.get(currentDialogueIndex);
+    public void loadDialoguesFromDatabase() {
+        dialogues.clear();
+        String sql = "SELECT id, speaker, text, character_image, background_image, sfx, type, next_dialogue_id FROM dialogues ORDER BY id";
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                dialogues.add(new DialogueEntry(
+                        rs.getInt("id"),
+                        rs.getString("speaker"),
+                        rs.getString("text"),
+                        rs.getString("character_image"),
+                        rs.getString("background_image"),
+                        rs.getString("sfx"),
+                        rs.getString("type"),
+                        rs.getInt("next_dialogue_id")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return null; // Or return a default DialogueEntry if needed
+        System.out.println("Loaded dialogues:");
+        for (DialogueEntry d : dialogues) {
+            System.out.println("ID: " + d.getId() + " | " + d.getText());
+        }
+
     }
 
-    // Go to the next dialogue
-    public boolean nextDialogue() {
-        if (currentDialogueIndex < dialogues.size() - 1) {
-            currentDialogueIndex++;
-            return true;
+
+    public void saveGame(int slot) {
+        String sql = "REPLACE INTO saves (slot_id, player_name, dialogue_index) VALUES (?, ?, ?)";
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, slot);
+            stmt.setString(2, playerName);
+            stmt.setInt(3, currentDialogueIndex);
+            stmt.executeUpdate();
+            System.out.println("Game saved to slot " + slot);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean loadGame(int slot) {
+        String sql = "SELECT player_name, dialogue_index FROM saves WHERE slot_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, slot);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                playerName = rs.getString("player_name");
+                currentDialogueIndex = rs.getInt("dialogue_index");
+                System.out.println("Loaded game from slot " + slot);
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
+    }
+    
+    public void savePlayerNameToDatabase() {
+    String sql = "INSERT INTO players (player_Name) VALUES (?)";
+    try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, playerName);
+        stmt.executeUpdate();
+        System.out.println("✅ Player name inserted: " + playerName);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+    public DialogueEntry getCurrentDialogue(int index) {
+        if (index >= 0 && index < dialogues.size()) {
+            return dialogues.get(index);
+        }
+        return null;
+    }
+
+    public int getTotalDialogues() {
+        return dialogues.size();
     }
 
     public void setPlayerName(String name) {
@@ -49,79 +103,57 @@ public class ModelFX {
     }
 
     public void startNewGame() {
-        System.out.println("Starting new game...");
         currentDialogueIndex = 0;
     }
 
-    public void loadGame() {
-        System.out.println("Loading saved game...");
-    }
-
-    public void openOptions() {
-        System.out.println("Exiting game...");
-        System.exit(0);
-    }
-
-    public int getDialogueSize() {
-        return dialogues.size();
-    }
-
-    public class DialogueEntry {
-        private String text;
-        private String characterImg;
-        private String backgroundImg;
-
-        public DialogueEntry(String text, String characterImg, String backgroundImg) {
-            this.text = text;
-            this.characterImg = characterImg;
-            this.backgroundImg = backgroundImg;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public String getCharacterImg() {
-            return characterImg;
-        }
-
-        public String getBackgroundImg() {
-            return backgroundImg;
-        }
-    }
-    
-    // Method to save player name to the database
-    public void savePlayerNameToDatabase(String playerName) {
-        // Database connection details
-        final String URL = "jdbc:mysql://localhost:3306/mygame?zeroDateTimeBehavior=CONVERT_TO_NULL";
-        final String USER = "root";
-        final String PASSWORD = "password";
-        String sql = "INSERT INTO players (player_Name) VALUES (?)"; // Adjusted column name
-
-        // Get a connection to the database
+    public String getBackgroundImagePathByName(String backgroundName) {
+        String sql = "SELECT image_path FROM backgrounds WHERE name = ?";
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Set the player name in the prepared statement
-            stmt.setString(1, playerName);
-
-            // Execute the insert query
-            stmt.executeUpdate();
-            System.out.println("Player name inserted successfully!");
-
+            stmt.setString(1, backgroundName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("image_path");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    // Method to establish a connection to the database
+    public List<ChoiceEntry> getChoicesForDialogue(int dialogueId) {
+        List<ChoiceEntry> choices = new ArrayList<>();
+        String sql = "SELECT choice_text, next_dialogue_id FROM choices WHERE dialogue_id = ?";
+
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, dialogueId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                choices.add(new ChoiceEntry(rs.getString("choice_text"), rs.getInt("next_dialogue_id")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return choices;
+    }
+
+    public int getDialogueIndexById(int dialogueId) {
+        for (int i = 0; i < dialogues.size(); i++) {
+            if (dialogues.get(i).getId() == dialogueId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
     private static Connection getConnection() throws SQLException {
         try {
-            // Load MySQL JDBC Driver
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             throw new SQLException("MySQL JDBC Driver not found.");
         }
-        return DriverManager.getConnection("jdbc:mysql://localhost:3306/mygame", "root", "password");
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/mygame?zeroDateTimeBehavior=CONVERT_TO_NULL", "root", "password");
     }
 }

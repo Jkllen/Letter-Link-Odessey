@@ -1,11 +1,11 @@
 package letterlinkodessey;
 
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class NameEntryFX {
@@ -18,26 +18,46 @@ public class NameEntryFX {
     }
 
     public void display() {
-        Label instruction = new Label("Please enter your name:");
-        instruction.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
+        String bgPath = controller.getModel().getBackgroundImagePathByName("namefield");
+
+        if (bgPath == null || bgPath.isEmpty()) {
+            System.out.println("No background found for namefield.");
+            return;
+        }
+
+        Image bgImage = new Image("file:" + bgPath);
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(800);
+        bgView.setFitHeight(455);
+        bgView.setPreserveRatio(false);
 
         TextField nameField = new TextField();
-        nameField.setMaxWidth(200);
+        nameField.setPromptText("Enter your name");
+        nameField.setPrefWidth(360);
+        nameField.setLayoutX(200);
+        nameField.setLayoutY(194);
+        nameField.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 16px;");
 
-        Button submitBtn = new Button("Submit");
+        Button submitBtn = new Button("");
+        submitBtn.setPrefSize(345, 43);
+        submitBtn.setLayoutX(205);
+        submitBtn.setLayoutY(280);
+        submitBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: black; -fx-font-size: 14px;");
+
         submitBtn.setOnAction(e -> {
             String playerName = nameField.getText().trim();
             if (!playerName.isEmpty()) {
+                System.out.println("Name submitted: " + playerName);
                 controller.savePlayerName(playerName);
             }
         });
 
-        VBox layout = new VBox(15, instruction, nameField, submitBtn);
-        layout.setStyle("-fx-background-color: #000000;");
-        layout.setAlignment(Pos.CENTER);
+        Pane root = new Pane();
+        root.getChildren().addAll(bgView, nameField, submitBtn);
 
-        Scene nameScene = new Scene(layout, 800, 600);
-        stage.setScene(nameScene);
+        Scene scene = new Scene(root, 800, 455);
+        stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
     }
 }

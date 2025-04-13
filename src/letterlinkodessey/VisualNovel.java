@@ -11,10 +11,15 @@ public class VisualNovel extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        //Initialize Model, View, and Controller
         model = new ModelFX();
         view = new MainMenuFX(primaryStage);
         controller = new ControllerFX(model, view, primaryStage);
+
+        //Set the scene and show the window
+        primaryStage.setScene(view.getScene());
+        primaryStage.setTitle("Letter Link Odessey");
+        primaryStage.setResizable(false);
+        primaryStage.show();
     }
 
     public static void main(String[] args) {

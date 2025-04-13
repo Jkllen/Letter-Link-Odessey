@@ -13,6 +13,7 @@ public class MainMenuFX {
     private Button newGame, loadGame, options, exit;
     private ImageView backgroundImageView;
     private Pane root;
+    private Scene scene;
 
     public MainMenuFX(Stage primaryStage) {
         newGame = new Button("New Game");
@@ -20,80 +21,72 @@ public class MainMenuFX {
         options = new Button("Options");
         exit = new Button("Exit");
 
-        // Initialize the background image view for template1.png
-        backgroundImageView = new ImageView(new Image("file:src/assets/backgrounds/template1.png"));
-        backgroundImageView.setFitWidth(800);  // Adjust to the size of your scene
-        backgroundImageView.setFitHeight(455); // Adjust to the size of your scene
+        backgroundImageView = new ImageView(new Image("file:src/assets/backgrounds/mainmenu.png"));
+        backgroundImageView.setFitWidth(800);
+        backgroundImageView.setFitHeight(455);
         backgroundImageView.setPreserveRatio(true);
 
-        // Button Styling and Effects
-        newGame.setStyle("-fx-font-size: 24px; -fx-font-family: 'Irish Grover'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;");
-        newGame.setOnMouseEntered(e -> newGame.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: gold; -fx-background-color: transparent; -fx-font-weight: bold;"));
-        newGame.setOnMouseExited(e -> newGame.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;"));
+        // Style buttons
+        styleButton(newGame, "Irish Grover");
+        styleButton(loadGame, "Irish Grover");
+        styleButton(options, "Irish Grover");
+        styleButton(exit, "Irish Grover");
 
-        loadGame.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;");
-        loadGame.setOnMouseEntered(e -> loadGame.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: gold; -fx-background-color: transparent; -fx-font-weight: bold;"));
-        loadGame.setOnMouseExited(e -> loadGame.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;"));
+        // Set button positions
+        setPosition(newGame, 70, 90);
+        setPosition(loadGame, 70, 170);
+        setPosition(options, 70, 250);
+        setPosition(exit, 70, 330);
 
-        options.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;");
-        options.setOnMouseEntered(e -> options.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: gold; -fx-background-color: transparent; -fx-font-weight: bold;"));
-        options.setOnMouseExited(e -> options.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;"));
-
-        exit.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;");
-        exit.setOnMouseEntered(e -> exit.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: gold; -fx-background-color: transparent; -fx-font-weight: bold;"));
-        exit.setOnMouseExited(e -> exit.setStyle("-fx-font-size: 24px; -fx-font-family: 'Georgia'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;"));
-
-        newGame.setPrefSize(200, 50);
-        newGame.setLayoutX(70);
-        newGame.setLayoutY(90);
-
-        loadGame.setPrefSize(200, 50);
-        loadGame.setLayoutX(70);
-        loadGame.setLayoutY(170);
-
-        options.setPrefSize(200, 50);
-        options.setLayoutX(70);
-        options.setLayoutY(250);
-
-        exit.setPrefSize(200, 50);
-        exit.setLayoutX(70);
-        exit.setLayoutY(330);
-
-        // Add drop shadow effect to buttons
+        // Drop shadow
         DropShadow glow = new DropShadow(20, Color.GOLD);
-        newGame.setOnMouseEntered(e -> newGame.setEffect(glow));
-        newGame.setOnMouseExited(e -> newGame.setEffect(null));
+        addHoverEffect(newGame, glow);
+        addHoverEffect(loadGame, glow);
+        addHoverEffect(options, glow);
+        addHoverEffect(exit, glow);
 
-        loadGame.setOnMouseEntered(e -> loadGame.setEffect(glow));
-        loadGame.setOnMouseExited(e -> loadGame.setEffect(null));
-
-        options.setOnMouseEntered(e -> options.setEffect(glow));
-        options.setOnMouseExited(e -> options.setEffect(null));
-
-        exit.setOnMouseEntered(e -> exit.setEffect(glow));
-        exit.setOnMouseExited(e -> exit.setEffect(null));
-
-        // Create root pane and add the background image and buttons
         root = new Pane();
         root.getChildren().addAll(backgroundImageView, newGame, loadGame, options, exit);
 
-        // Create the scene and set it on the primary stage
-        Scene scene = new Scene(root, 800, 455);
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Letter Link Odyssey");
-        primaryStage.show();
+        scene = new Scene(root, 800, 455);
     }
 
-    public void setBackgroundImage(String imagePath) {
-        // Only set the background image to template1.png
-        backgroundImageView.setImage(new Image("file:src/assets/backgrounds/template1.png"));
+    // Helper Methods
+    private void styleButton(Button button, String fontFamily) {
+        button.setStyle("-fx-font-size: 24px; -fx-font-family: '" + fontFamily + "'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;");
+        button.setOnMouseEntered(e -> button.setStyle("-fx-font-size: 24px; -fx-font-family: '" + fontFamily + "'; -fx-text-fill: gold; -fx-background-color: transparent; -fx-font-weight: bold;"));
+        button.setOnMouseExited(e -> button.setStyle("-fx-font-size: 24px; -fx-font-family: '" + fontFamily + "'; -fx-text-fill: white; -fx-background-color: transparent; -fx-font-weight: bold;"));
+    }
+
+    private void setPosition(Button button, int x, int y) {
+        button.setPrefSize(200, 50);
+        button.setLayoutX(x);
+        button.setLayoutY(y);
+    }
+
+    private void addHoverEffect(Button button, DropShadow glow) {
+        button.setOnMouseEntered(e -> button.setEffect(glow));
+        button.setOnMouseExited(e -> button.setEffect(null));
+    }
+
+    // Public getters
+    public Scene getScene() {
+        return scene;
     }
 
     public Button getNewGameButton() {
         return newGame;
     }
 
+    public Button getLoadGameButton() {
+        return loadGame;
+    }
+
     public Pane getRootPane() {
         return root;
+    }
+
+    public void setBackgroundImage(String imagePath) {
+        backgroundImageView.setImage(new Image("file:src/assets/backgrounds/mainmenu.png"));
     }
 }
